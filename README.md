@@ -92,4 +92,4 @@ curl -X POST http://localhost:5000/api/v1/notifications \
 
 Пример лога при постановке в очередь:
 `{"level": "INFO", "module": "notifications", "message": {"event": "notification.queued", "notification_id": "0b3fea77..."}}`
-# notification-service
+
