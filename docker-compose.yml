@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: notifications
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/notifications
+      - REDIS_URL=redis://redis:6379/0
+      - FLASK_ENV=development
+      - PYTHONPATH=/app
+    volumes:
+      - .:/app
+    command: flask run --host=0.0.0.0 --reload
+
+  worker:
+    build: .
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/notifications
+      - REDIS_URL=redis://redis:6379/0
+      - PYTHONPATH=/app
+    volumes:
+      - .:/app
+    command: rq worker --url redis://redis:6379/0 notifications
+
+volumes:
+  postgres_data:
